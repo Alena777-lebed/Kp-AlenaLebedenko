@@ -50,3 +50,31 @@ relative(X,Y,Z):- grandmother(Y,Z), X = 'grandmother'.
 
 mainrelative([X],Y,Z,[Y,Z]):- relative(X,Y,Z),!.
 mainrelative([X|L],Y,Z,[Y|P]):- relative(X,Y,Z1), mainrelative(L,Z1,Z,P).
+
+formove(X,Y):- father(X,Y).
+formove(X,Y):- mother(X,Y).
+formove(X,Y):- brother(X,Y).
+formove(X,Y):- sister(X,Y).
+formove(X,Y):- cousinm(X,Y).
+formove(X,Y):- cousinf(X,Y).
+formove(X,Y):- grandfather(X,Y).
+formove(X,Y):- grandmother(X,Y).
+move(X,Y):- formove(X,Y).
+move(X,Y):- formove(Y,X).
+
+ prolong([X|T],[Y,X|T]):- move(X,Y), not(member(Y,[X|T])).
+ int(1).
+ int(M):- int(N), M is N+1.
+ search_id(Start,Finish,Path,DepthLimit):- depth_id([Start],Finish,Path,DepthLimit).
+ depth_id([Finish|T],Finish,[Finish|T],0).
+ depth_id(Path,Finish,R,N):- N > 0, prolong(Path,NewPath), N1 is N - 1,
+ depth_id(NewPath,Finish,R,N1).
+
+ search_id1(Start,Finish,Path):- int(Level), search_id(Start,Finish,Path,Level).
+
+ namerel([],[]).
+ namerel([X,Y|T],[Z|R]):- relative(Z,Y,X),namerel([Y|T],R).
+ namerel([X,Y|T],[Z|R]):- relative(Z,X,Y),namerel([Y|T],R).
+ namerel([X,Y|T],[Z|R]):- relative(Z,Y,X),namerel(T,R).
+
+ mainsearch(X,Y,L,R):- search_id1(X,Y,L),namerel(L,R).
