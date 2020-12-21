@@ -26,7 +26,7 @@
  
 ## Задание 1-2
 
-Для этого задания я написала парсер на языке Python. 
+Для этого задания я написала парсер на языке Python. Мы ищем слова такие как GIVN или SURN или SEX и после них считывем нужную информацию, которую в проследствие записоваем в результирующий файл.
 
 ## Задание 3
 
@@ -73,7 +73,8 @@ X = alena .
     cousinm(X,Y):- parent(X1,X), parent(Y1,Y), brotherorsister(X1,Y1), sex(X,m).
   
   ## Задание 4
-  
+  Так получилось, что у меня 2 варианта решения
+  Решение 1
   Для этого задания я написала еще несколько правил для определения родства
 
     father(X,Y):- parent(X,Y),sex(X,m).
@@ -116,6 +117,51 @@ X = alena .
      X = [ grandfather, mother - child, cousinf ], Y = [ ivan, anya, masha, alena ] ;
      X = [ grandfather, sister, mother - child ], Y = [ ivan, anya, marina, alena ] .
      
+Решение 2
+Напишем правило move
+
+      formove(X,Y):- father(X,Y).
+      formove(X,Y):- mother(X,Y).
+      formove(X,Y):- brother(X,Y).
+      formove(X,Y):- sister(X,Y).
+      formove(X,Y):- cousinm(X,Y).
+      formove(X,Y):- cousinf(X,Y).
+      formove(X,Y):- grandfather(X,Y).
+      formove(X,Y):- grandmother(X,Y).
+      move(X,Y):- formove(X,Y).
+      move(X,Y):- formove(Y,X).
+
+Используем поиск с итерационным заглублением
+
+     prolong([X|T],[Y,X|T]):- move(X,Y), not(member(Y,[X|T])).
+     int(1).
+     int(M):- int(N), M is N+1.
+     search_id(Start,Finish,Path,DepthLimit):- depth_id([Start],Finish,Path,DepthLimit).
+     depth_id([Finish|T],Finish,[Finish|T],0).
+     depth_id(Path,Finish,R,N):- N > 0, prolong(Path,NewPath), N1 is N - 1,
+     depth_id(NewPath,Finish,R,N1).
+
+     search_id1(Start,Finish,Path):- int(Level), search_id(Start,Finish,Path,Level).
+  
+  Пишем правило для преобразования списка имен с отношение родства, то есть берем 2 первых элемента в списке имен и проверяем их родство заносим результат в список родства и проверяем хвост списка имен. Остоновка когда список имен пуст.
+  
+     namerel([],[]).
+    namerel([X,Y|T],[Z|R]):- relative(Z,Y,X),namerel([Y|T],R).
+    namerel([X,Y|T],[Z|R]):- relative(Z,X,Y),namerel([Y|T],R).
+    namerel([X,Y|T],[Z|R]):- relative(Z,Y,X),namerel(T,R).
+    
+  Ищем путь и сразу преобразовываем в список родства 
+    
+    mainsearch(X,Y,L,R):- search_id1(X,Y,L),namerel(L,R).
+ 
+ Пример
+ 
+     ?- mainsearch(nikita,alena,X,Y).
+     Y = [ cousinm ], X = [ alena, nikita ] ;
+    Y = [ cousinm ], X = [ alena, nikita ] ;
+    Y = [ cousinf, brother ], X = [ alena, masha, nikita ] ;
+    Y = [ cousinf, brother ], X = [ alena, masha, nikita ] ;
+ 
  Выводы
  
  Благодаря курсу логического программирования я узнала для себя такой подход к программированию как декларативный. Теперь когда мне приходьтся присать код на не декларативном языке я задумываюсь, а как это можно реализовать на Пролог и это помогоает мне в поиске более негких решений. Также этот курс заставил меня заинтересоваться искусственным интеллектом.
